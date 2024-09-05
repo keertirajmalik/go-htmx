@@ -4,34 +4,66 @@
 <head>
     <title>Our First HTML Site!</title>
     <script src="https://unpkg.com/htmx.org/dist/htmx.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            document.body.addEventListener('htmx:beforeSwap', function (evt) {
+                if (evt.detail.xhr.status === 422) {
+                    // allow 422 responses to swap as we are using this as a signal that
+                    // a form was submitted with bad data and want to rerender with the
+                    // errors
+                    //
+                    // set isError to false to avoid error logging in console
+                    evt.detail.shouldSwap = true;
+                    evt.detail.isError = false;
+                }
+            });
+        })
+    </script>
 </head>
 
 <body>
-    {{ template "contact-form" . }}
+    {{ template "contact-form" .Form }}
     <hr />
-    {{ template "contact-display" . }}
+    {{ template "contact-display" .Data }}
 </body>
 
 </html>
 {{ end }}
 
 {{ block "contact-form" . }}
-<form hx-post="/contacts">
+<form hx-swap="outerHTML" hx-post="/contact">
     <label for="name">Name</label>
-    <input name="name" placeholder="Name">
+    <input name="name" {{ if .Values.name }} value="{{ .Values.name }}" {{ end }} type="text" />
 
     <label for="email">Email</label>
-    <input type="email" name="email" placeholder="Email">
+    <input name="email" {{ if .Values.email}} value="{{ .Values.email }}" {{ end }} type="text" />
 
-    <button type="submit">Submit</button>
+    {{ if .Errors.email }}
+    <div style="color: red;">{{ .Errors.email }} </div>
+    {{ end }}
+
+    <button type="submit">Create Contact</button>
 </form>
 {{ end }}
 
 {{ block "contact-display" . }}
-{{ range .Contacts }}
+<div id="contacts" style="display: flex; flex-direction: column;">
+    {{ range .Contacts }}
+    {{ template "contact-div" . }}
+    {{ end }}
+</div>
+{{ end }}
+
+{{ block "contact-div" . }}
 <div>
     Name: <span>{{ .Name }}</span>
     Email: <span>{{ .Email }}</span>
 </div>
 {{ end }}
+
+
+{{ block "oob-contact-div" . }}
+<div id="contacts" hx-swap-oob="afterbegin">
+    {{ template "contact-div" . }}
+</div>
 {{ end }}
