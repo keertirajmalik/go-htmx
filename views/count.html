@@ -1,4 +1,4 @@
-{{ block "index" .}}
+{{ block "count" .}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,7 +14,7 @@
 <body>
 </body>
     <div id="count">
-        {{ template "count" . }}
+        {{ template "count-div" . }}
     </div>
     <button hx-target="#count" hx-post="/count">Count</button>
 </html>
@@ -22,6 +22,6 @@
 {{ end }}
 
 
-{{ block "count" . }}
+{{ block "count-div" . }}
     Count {{ .Count }}
 {{ end }}
