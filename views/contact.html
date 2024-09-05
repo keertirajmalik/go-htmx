@@ -3,6 +3,8 @@
 
 <head>
     <title>Our First HTML Site!</title>
+    <link rel="stylesheet" href="/css/index.css">
+
     <script src="https://unpkg.com/htmx.org/dist/htmx.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", (event) => {
@@ -12,6 +14,14 @@
                     // a form was submitted with bad data and want to rerender with the
                     // errors
                     //
+                    // set isError to false to avoid error logging in console
+                    evt.detail.shouldSwap = true;
+                    evt.detail.isError = false;
+                }
+                else if (evt.detail.xhr.status === 204) {
+                    // allow 204 responses to swap as we are using this as a signal that
+                    // contact delete was successful
+
                     // set isError to false to avoid error logging in console
                     evt.detail.shouldSwap = true;
                     evt.detail.isError = false;
@@ -55,9 +65,22 @@
 {{ end }}
 
 {{ block "contact-div" . }}
-<div>
+<div class="contact" id="contact-div-{{ .Id }}" style="display: flex;">
+    <div hx-indicator="#contact-indicator-{{ .Id }}" hx-target="#contact-div-{{ .Id }}" hx-swap="outerHTML swap:1000ms"
+        hx-delete="/contact/{{ .Id }}" style="width: 1rem; cursor: pointer;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path fill="none" d="M0 0h24v24H0z" />
+            <path
+                d="M4 2h16a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1zM3 6h18v16a1 1 0 01-1 1H4a1 1 0 01-1-1V6zm3 3v9a1 1 0 002 0v-9a1 1 0 00-2 0zm5 0v9a1 1 0 002 0v-9a1 1 0 00-2 0zm5 0v9a1 1 0 002 0v-9a1 1 0 00-2 0z" />
+        </svg>
+    </div>
+
     Name: <span>{{ .Name }}</span>
     Email: <span>{{ .Email }}</span>
+
+    <div id="contact-indicator-{{ .Id }}" class="htmx-indicator" style="width: 24px; height: 24px">
+        <img src="/images/bars.svg" alt="loading" style="width: 24px; height: 24px">
+    </div>
 </div>
 {{ end }}
 

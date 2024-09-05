@@ -1,16 +1,25 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+	"strconv"
+	"time"
+)
 
 type Contact struct {
 	Name  string
 	Email string
+	Id    int
 }
 
+var id = 0
+
 func newContact(name, email string) Contact {
+	id++
 	return Contact{
 		Name:  name,
 		Email: email,
+		Id:    id,
 	}
 }
 
@@ -27,6 +36,17 @@ func (d *Data) hasEmail(email string) bool {
 		}
 	}
 	return false
+}
+
+func (d *Data) indexOf(id int) int {
+
+	for i, contact := range d.Contacts {
+		if contact.Id == id {
+			return i
+		}
+	}
+
+	return -1
 }
 
 func newData() Data {
@@ -89,5 +109,31 @@ func handleContactCreate(templates *Templates, page Page) http.HandlerFunc {
 
 		templates.Render(w, "contact-form", newFormData())
 		templates.Render(w, "oob-contact-div", contact)
+	}
+}
+
+func handleContactDelete(_ *Templates, page Page) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid id"))
+			return
+		}
+
+		index := page.Data.indexOf(id)
+		if index == -1 {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Contact not found"))
+			return
+		}
+
+        time.Sleep(3 * time.Second)
+
+		page.Data.Contacts = append(page.Data.Contacts[:index], page.Data.Contacts[index+1:]...)
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
